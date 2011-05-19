@@ -6,7 +6,8 @@
 (function (exports, undefined) {
 
   // Retain a reference to the original property.
-  var _Broadcast = exports.Broadcast;
+  var _Broadcast = exports.Broadcast,
+      hasOwnProp = Object.prototype.hasOwnProperty;
 
   /* Extends an obejct with properties from another
    *
@@ -22,7 +23,7 @@
    */
   function extend(target, object) {
     for (var key in object) {
-      if (object.hasOwnProperty(key)) {
+      if (hasOwnProp.call(object, key)) {
         target[key] = object[key];
       }
     }
@@ -134,7 +135,7 @@
     subscribe: function (topic, callback) {
       if (arguments.length === 1) {
         for (var key in topic) {
-          if (topic.hasOwnProperty(key)) {
+          if (hasOwnProp.call(topic, key)) {
             this.subscribe(key, topic[key]);
           }
         }
