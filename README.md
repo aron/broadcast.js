@@ -128,6 +128,20 @@ MyFramework.Events = Broadcast.noConflict();
 var events = new MyFramework.Events();
 ```
 
+Development
+-----------
+
+Tests are managed using the [Vows][#vows] framework for Node.js. It can be
+installed by running the following.
+
+    $ npm install -g vows
+
+Tests can then be run with the following command.
+
+    $ vows broadcast-test.js
+
+[#vows]: http://vowsjs.org/
+
 Roadmap
 -------
 
