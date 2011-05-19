@@ -8,6 +8,24 @@
   // Retain a reference to the original property.
   var _Broadcast = exports.Broadcast;
 
+  /* Public: Creates an instance of Broadcast.
+   *
+   * options - An Object literal containing setup options.
+   *           alias: If false will not assign the .on() alias.
+   *
+   * Examples
+   *
+   *   // In the browser.
+   *   var events = new Broadcast();
+   *   vents.subscribe('say', function (message) { console.log(message); });
+   *   events.publish('say', 'Hello World'); // Logs "Hello World"
+   *
+   *   // On the server.
+   *   var Broadcast = require('broadcast').Broadcast;
+   *   var events = new Broadcast();
+   *
+   * Returns a new instance of Broadcast.
+   */
   function Broadcast(options) {
     this._callbacks = {};
     if (!options || options.alias === true) {
