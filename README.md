@@ -74,7 +74,7 @@ function MyObject() {
 // Set your constructors prototype.
 MyObject.prototype = new Broadcast();
 
-// Redefine the overwritten construtor property.
+// Redefine the overwritten constructor property.
 MyObject.prototype.construtor = MyObject;
 ```
 

@@ -1,4 +1,4 @@
-/*  Broadcast.js - v0.3.0
+/*  Broadcast.js - v0.3.x
  *  Copyright 2011, Aron Carroll
  *  Released under the MIT license
  *  More Information: http://github.com/aron/broadcast.js
@@ -38,7 +38,7 @@
    *
    *   // In the browser.
    *   var events = new Broadcast();
-   *   vents.subscribe('say', function (message) { console.log(message); });
+   *   events.subscribe('say', function (message) { console.log(message); });
    *   events.publish('say', 'Hello World'); // Logs "Hello World"
    *
    *   // On the server.
@@ -62,8 +62,6 @@
    *   Broadcast.subscribe('say', function (message) { console.log(message); });
    *   Broadcast.publish('say', 'Hello World'); // Logs "Hello World"
    *   Broadcast.unsubscribe('say');
-   *
-   * Returns
    */
   extend(Broadcast, {
 
