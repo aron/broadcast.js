@@ -45,6 +45,26 @@ vows.describe('Broadcast').addBatch({
         var args = Array.prototype.slice.call(callback.args);
         assert.deepEqual(args, params);
       });
+    },
+    '.publish("all")': {
+      'should publish "all" topic when an event is fired': function (event) {
+        function onAll() { onAll.called = true; }
+        event.subscribe('all', onAll).publish('change');
+        assert.isTrue(onAll.called);
+      },
+      'should provide topic name and arguments to callback': function (event) {
+        function onAll() { onAll.args = arguments; }
+        event.subscribe('all', onAll).publish('change', 'argument', 20);
+        assert.equal(onAll.args[0], 'change');
+        assert.equal(onAll.args[1], 'argument');
+        assert.equal(onAll.args[2], 20);
+      },
+      'should NOT publish "all" topic if "all" is published': function (event) {
+        function onAll() { onAll.count += 1; }
+        onAll.count = 0;
+        event.subscribe('all', onAll).publish('all');
+        assert.equal(onAll.count, 1);
+      }
     }
   },
   '.subscribe()': {
