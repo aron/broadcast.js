@@ -1,4 +1,4 @@
-/*  Broadcast.js - v0.1
+/*  Broadcast.js - v0.2
  *  Copyright 2011, Aron Carroll
  *  Released under the MIT license
  *  More Information: http://github.com/aron/broadcast.js
@@ -7,6 +7,27 @@
 
   // Retain a reference to the original property.
   var _Broadcast = exports.Broadcast;
+
+  /* Extends an obejct with properties from another
+   *
+   * target - The Object that is to be extended.
+   * obejct - An Object containing properties.
+   *
+   * Examples
+   *
+   *   extend({type: 'person'}, {name: 'bill', age: 20});
+   *   //=> {type: 'person', name: 'bill', age: 20}
+   *
+   * Returns the extended object.
+   */
+  function extend(target, object) {
+    for (var key in object) {
+      if (object.hasOwnProperty(key)) {
+        target[key] = object[key];
+      }
+    }
+    return target;
+  }
 
   /* Public: Creates an instance of Broadcast.
    *
@@ -33,9 +54,18 @@
     }
   }
 
-  Broadcast.prototype = {
-    /* Redefine the constructor */
-    constructor: Broadcast,
+  /* Public: Allows Broadcast to be used simply as a global pub/sub
+   * implementation without creating new instances.
+   *
+   * Examples
+   *
+   *   Broadcast.subscribe('say', function (message) { console.log(message); });
+   *   Broadcast.publish('say', 'Hello World'); // Logs "Hello World"
+   *   Broadcast.unsubscribe('say');
+   *
+   * Returns
+   */
+  extend(Broadcast, {
 
     /* Object used to store registered callbacks. An instance specific property
      * is created in the constructor.
@@ -156,7 +186,10 @@
 
       return this;
     }
-  };
+  });
+
+  /* Extend the constructors prototype with the same methods. */
+  extend(Broadcast.prototype, Broadcast);
 
   /* Public: Removes Broadcast from the global scope (only applies to web
    * browsers). Useful if you want to implement Broadcast under another
