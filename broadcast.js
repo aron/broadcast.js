@@ -180,4 +180,4 @@
   // on the current environment.
   exports.Broadcast = Broadcast;
 
-})(this.exports || this);
+})(typeof exports === 'object' ? exports : this);
