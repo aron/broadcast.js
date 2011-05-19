@@ -114,13 +114,36 @@ Returns itself for chaining.
 events.subscribe('create', function () {});
 ```
 
+There is also a special topic called __"all"__ that will fire when any other
+topic is published. It provides the name of the topic published and any
+additional arguments to registered callbacks. This feature was taken from the
+JavaScript framework [Backbone.js][#backbone] where it is often used to proxy
+calls through other objects.
+
+#### Examples
+
+```javascript
+var model.events = new Broadcast();
+var view.events  = new Broadcast();
+
+view.events.subscribe('changed', function (properties) {
+    updateView(properties);
+});
+
+// Subscribe to the special "all" topic and rebroadcast topics through event2.
+model.events.subscribe('all', function (topic) {
+  view.events.publish.apply(view.events, arguments);
+});
+model.events.publish('changed', {name: 'Bill'});
+```
+
+[#backbone]: http://documentcloud.github.com/backbone/
+
 ### .subscribe(topics) / .on(topics)
 
-Subscribe to multiple topics.
+Subscribe to multiple topics. Returns itself for chaining.
 
 - `topics`: An Object of topic/callback pairs.
-
-Returns itself for chaining.
 
 #### Examples
 
@@ -136,12 +159,10 @@ events.subscribe({
 Unbinds registered listeners for a topic. If no arguments are
 passed all callbacks are removed. If a topic is provided only callbacks
 for that topic are removed. If a topic and function are passed all
-occurrences of that function are removed.
+occurrences of that function are removed. Returns itself for chaining.
 
  - `topic`: A topic String to unsubscribe (optional).
  - `callback`: A specific callback Function to remove (optional).
-
-Returns itself for chaining.
 
 #### Examples
 
@@ -167,9 +188,7 @@ events.unsubscribe(); // Removes all callbacks for all topics D & E.
 
 Removes Broadcast from the global scope (only applies to web
 browsers). Useful if you want to implement Broadcast under another
-libraries namespace.
-
-Returns the Broadcast function.
+libraries namespace. Returns the Broadcast function.
 
 #### Examples
 
@@ -197,10 +216,7 @@ Tests can then be run with the following command.
 Roadmap
 -------
 
- - 0.3: Implement `"all"` topic as in [Backbone][#backbone]
  - 0.4: Implement topic namespaces.
-
-[#backbone]: http://documentcloud.github.com/backbone/
 
 License
 -------
