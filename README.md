@@ -9,9 +9,9 @@ Usage
 -----
 
 Broadcast is designed to be used as a constructor to create new instances of
-the object. However the `.subscribe()`, `.unsubscribe()` and `.publish()`
-methods are available on the `Broadcast` object itself and can be used as a 
-single global pub/sub object.
+itself. However the `.subscribe()`, `.unsubscribe()` and `.publish()`
+methods are also available on the `Broadcast` function/object and can be used
+as a  single global pub/sub object.
 
 ```javascript
 var events = new Broadcast();
@@ -62,8 +62,7 @@ for (var key in Broadcast) {
 myObject.unsubscribe();
 ```
 
-A nicer if not more convoluted method is to use JavaScripts prototypal
-inheritance.
+A nicer alternative is to use JavaScripts prototypal inheritance.
 
 ```javascript
 function MyObject() {
@@ -127,10 +126,10 @@ var model.events = new Broadcast();
 var view.events  = new Broadcast();
 
 view.events.subscribe('changed', function (properties) {
-    updateView(properties);
+  updateView(properties);
 });
 
-// Subscribe to the special "all" topic and rebroadcast topics through event2.
+// Subscribe to the special "all" topic and rebroadcast through view.events.
 model.events.subscribe('all', function (topic) {
   view.events.publish.apply(view.events, arguments);
 });
@@ -172,11 +171,11 @@ var events = new Broadcast();
 function A() {}
 
 events.subscribe({
-'create', A,
-'create', function B() {},
-'create', function C() {},
-'update', function D() {},
-'delete', function E() {}
+  'create', A,
+  'create', function B() {},
+  'create', function C() {},
+  'update', function D() {},
+  'delete', function E() {}
 );
 
 events.unsubscribe('create', A); // Removes callback A.
