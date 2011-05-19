@@ -75,6 +75,10 @@
     /* Public: Publishes a topic. Calls all registered callbacks passing in any
      * arguments provided after the topic string.
      *
+     * There is also a special topic called "all" that will fire when any other
+     * topic is published providing the topic published and any additional
+     * arguments to all callbacks.
+     *
      * topic      - A topic String to publish.
      * arguments* - All subsequent arguments will be passed into callbacks.
      *
@@ -84,14 +88,25 @@
      *   events.subscribe('say', function (message) { console.log(message); });
      *   events.publish('say', 'Hello World'); // Logs "Hello World"
      *
+     *   // Subscribe to the special "all" topic.
+     *   events.subscribe('all', function (topic) {
+     *     console.log(topic, arguments[1]);
+     *   });
+     *   events.publish('say', 'Hello Again'); // Logs "say Hello World"
+     *
      * Returns itself for chaining.
      */
     publish: function (topic /* , arguments... */) {
       var callbacks = this._callbacks[topic] || [],
+          slice = Array.prototype.slice,
           index = 0, count = callbacks.length;
 
       for (; index < count; index += 1) {
-        callbacks[index].apply(this, Array.prototype.slice.call(arguments, 1));
+        callbacks[index].apply(this, slice.call(arguments, 1));
+      }
+
+      if (topic !== 'all') {
+        this.publish.apply(this, ['all', topic].concat(slice.call(arguments, 1)));
       }
 
       return this;
