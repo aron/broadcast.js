@@ -136,6 +136,11 @@ vows.describe('Broadcast').addBatch({
         event.unsubscribe();
         assert.isEmpty(event._callbacks);
       },
+    },
+    'Broadcast object should also have all methods': function () {
+      ['publish', 'subscribe', 'unsubscribe'].forEach(function (method) {
+        assert.equal(Broadcast[method], Broadcast.prototype[method]);
+      });
     }
   },
   'Broadcast.noConflict()': {
