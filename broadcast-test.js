@@ -1,5 +1,3 @@
-require.paths.push('node_modules');
-
 var broadcast = require('broadcast'),
     Broadcast = broadcast.Broadcast,
     assert = require('assert'),
