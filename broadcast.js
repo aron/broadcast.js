@@ -104,7 +104,7 @@
       }
 
       if (topic !== 'all') {
-        this.publish.apply(this, ['all', topic].concat(slice.call(arguments, 1)));
+        this.publish.apply(this, ['all'].concat(slice.call(arguments)));
       }
 
       return this;
