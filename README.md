@@ -8,11 +8,16 @@ to `.on()`).
 Usage
 -----
 
+Broadcast is designed to be used as a constructor to create new instances of
+the object. However the `.subscribe()`, `.unsubscribe()` and `.publish()`
+methods are available on the `Broadcast` object itself and can be used as a 
+single global pub/sub object.
+
 ```javascript
 var events = new Broadcast();
 
 event.subscribe('change', function () {
-    console.log('Something changed. No idea what though.');
+  console.log('Something changed. No idea what though.');
 });
 event.publish('change'); // Message is logged to console.
 
@@ -20,14 +25,61 @@ event.unsubscribe('change');
 event.publish('change'); // Silence...
 ```
 
+Or alternatively using a single global object…
+
+```javascript
+Broadcast.subscribe('change', function () {
+  console.log('Something changed. No idea what though.');
+});
+Broadcast.publish('change'); // Message is logged to console.
+
+Broadcast.unsubscribe('change');
+Broadcast.publish('change'); // Silence...
+```
+
+_NOTE: The method `.on()` is not available on the global object._
+
 ### Options
 
 Options can be passed into the constructor on creation.
 
  - `alias`: If `false` will not create the `.on()` alias.
 
-Methods
--------
+### Extending your own objects.
+
+The simplest way to add Broadcast's methods to your objects is to extend them.
+
+```javascript
+var myObject = {};
+for (var key in Broadcast) {
+  if (Broadcast.hasOwnProperty(key)) {
+    myObject[key] = Broadcast[key];
+  }
+}
+
+// If you've been using Broadcast as a global object be sure to call
+// .unsubscribe() to reset your new object.
+myObject.unsubscribe();
+```
+
+A nicer if not more convoluted method is to use JavaScripts prototypal
+inheritance.
+
+```javascript
+function MyObject() {
+  // Call Broadcasts constructor.
+  Broadcast.apply(this, arguments);
+}
+
+// Set your constructors prototype.
+MyObject.prototype = new Broadcast();
+
+// Redefine the overwritten construtor property.
+MyObject.prototype.construtor = MyObject;
+```
+
+API
+---
 
 ### .publish(topic [ , arguments... ])
 
@@ -145,7 +197,6 @@ Tests can then be run with the following command.
 Roadmap
 -------
 
- - 0.2: Allow use of `Broadcast` as a singleton.
  - 0.3: Implement `"all"` topic as in [Backbone][#backbone]
  - 0.4: Implement topic namespaces.
 
