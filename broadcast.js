@@ -3,10 +3,10 @@
  *  Released under the MIT license
  *  More Information: http://github.com/aron/broadcast.js
  */
-(function (exports, undefined) {
+(function (module, undefined) {
 
   // Retain a reference to the original property.
-  var _Broadcast = exports.Broadcast,
+  var _Broadcast = module.Broadcast,
       hasOwnProp = Object.prototype.hasOwnProperty;
 
   /* Extends an obejct with properties from another
@@ -43,7 +43,7 @@
    *   events.publish('say', 'Hello World'); // Logs "Hello World"
    *
    *   // On the server.
-   *   var Broadcast = require('broadcast').Broadcast;
+   *   var Broadcast = require('broadcast');
    *   var events = new Broadcast();
    *
    * Returns a new instance of Broadcast.
@@ -225,6 +225,10 @@
 
   // Export the function to either the exports or global object depending
   // on the current environment.
-  exports.Broadcast = Broadcast;
+  if (module.exports) {
+    module.exports = Broadcast;
+  } else {
+    module.Broadcast = Broadcast;
+  }
 
-})(typeof exports === 'object' ? exports : this);
+})(typeof module === 'object' ? module : this);

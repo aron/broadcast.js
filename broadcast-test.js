@@ -1,5 +1,4 @@
-var broadcast = require('broadcast'),
-    Broadcast = broadcast.Broadcast,
+var Broadcast = require('broadcast'),
     assert = require('assert'),
     vows = require('vows');
 
@@ -165,8 +164,10 @@ vows.describe('Broadcast').addBatch({
   },
   'Broadcast.noConflict()': {
     'should restore previous Broadcast property': function () {
+      // Don't think this can be verified using server side testing.
+    },
+    'should return Broadcast': function () {
       var returned = Broadcast.noConflict();
-      assert.isUndefined(broadcast.Broadcast);
       assert.equal(returned, Broadcast);
     }
   }
