@@ -11,17 +11,23 @@ vows.describe('Broadcast').addBatch({
     'should create the _callbacks property': function (event) {
       assert.isObject(event._callbacks);
     },
-    'should alias .subscribe() to .on()': function (event) {
-      assert.equal(event.on, event.subscribe, true);
+    'should alias .addListener() to .on()': function (event) {
+      assert.equal(event.on, event.addListener, true);
+    },
+    'should alias .emit() to .trigger()': function (event) {
+      assert.equal(event.trigger, event.emit, true);
     },
     'new Broadcast(options)': {
       topic: new Broadcast({alias: false}),
-      'should NOT alias .subscribe() to .on()': function (event) {
+      'should NOT alias .addListener() to .on()': function (event) {
         assert.isUndefined(event.on);
+      },
+      'should NOT alias .emit() to .trigger()': function (event) {
+        assert.isUndefined(event.trigger);
       }
     }
   },
-  '.publish()': {
+  '.emit()': {
     topic: function () {
       var event = new Broadcast();
       event._callbacks.change = [
@@ -32,63 +38,63 @@ vows.describe('Broadcast').addBatch({
       return event;
     },
     'should call all registered callbacks for topic': function (event) {
-      event.publish('change');
+      event.emit('change');
       event._callbacks['change'].forEach(function (callback) {
         assert.isTrue(callback.called);
       });
     },
     'should pass any additional arguments into the callback': function (event) {
       var params = [20, 'hello', {my: 'object'}];
-      event.publish.apply(event, ['change'].concat(params));
+      event.emit.apply(event, ['change'].concat(params));
       event._callbacks['change'].forEach(function (callback) {
         var args = Array.prototype.slice.call(callback.args);
         assert.deepEqual(args, params);
       });
     },
-    '.publish("all")': {
-      'should publish "all" topic when an event is fired': function (event) {
+    '.emit("all")': {
+      'should emit "all" topic when an event is fired': function (event) {
         function onAll() { onAll.called = true; }
-        event.subscribe('all', onAll).publish('change');
+        event.addListener('all', onAll).emit('change');
         assert.isTrue(onAll.called);
       },
       'should provide topic name and arguments to callback': function (event) {
         function onAll() { onAll.args = arguments; }
-        event.subscribe('all', onAll).publish('change', 'argument', 20);
+        event.addListener('all', onAll).emit('change', 'argument', 20);
         assert.equal(onAll.args[0], 'change');
         assert.equal(onAll.args[1], 'argument');
         assert.equal(onAll.args[2], 20);
       },
-      'should NOT publish "all" topic if "all" is published': function (event) {
+      'should NOT emit "all" topic if "all" is emited': function (event) {
         function onAll() { onAll.count += 1; }
         onAll.count = 0;
-        event.subscribe('all', onAll).publish('all');
+        event.addListener('all', onAll).emit('all');
         assert.equal(onAll.count, 1);
       }
     }
   },
-  '.subscribe()': {
+  '.addListener()': {
     topic: new Broadcast(),
-    '.subscribe(topic, callback)': {
+    '.addListener(topic, callback)': {
       'should register a callback for a topic': function (event) {
         function A() {}
-        event.subscribe('change', A);
+        event.addListener('change', A);
         assert.include(event._callbacks.change, A);
       }
     },
-    '.subscribe(callbacks)': {
+    '.addListener(callbacks)': {
       'should register multiple topic/callback pairs': function (event) {
         function A() {}
         function B() {}
         function C() {}
 
-        event.subscribe({create: A, update: B, destroy: C});
+        event.addListener({create: A, update: B, destroy: C});
         assert.include(event._callbacks.create, A);
         assert.include(event._callbacks.update, B);
         assert.include(event._callbacks.destroy, C);
       }
     }
   },
-  '.unsubscribe()': {
+  '.removeListener()': {
     topic: function () {
       var event = new Broadcast();
       event._callbacks = {
@@ -106,13 +112,13 @@ vows.describe('Broadcast').addBatch({
       };
       return event;
     },
-    '.unsubscribe(topic, callback)': {
+    '.removeListener(topic, callback)': {
       'should remove provided callback from topic': function (event) {
         var A = event._callbacks.create[0],
             B = event._callbacks.create[1],
             C = event._callbacks.create[2];
 
-        event.unsubscribe('create', B);
+        event.removeListener('create', B);
         assert.deepEqual(event._callbacks.create, [A, C]);
       },
       'should remove multiple occurrences of callback from topic': function (event) {
@@ -122,42 +128,42 @@ vows.describe('Broadcast').addBatch({
 
         event._callbacks.create = [A, B, C, B];
 
-        event.unsubscribe('create', B);
+        event.removeListener('create', B);
         assert.deepEqual(event._callbacks.create, [A, C]);
       },
       'should allow a callback to unbind itself': function (event) {
         function A() { A.count += 1; }
-        function B() { B.count += 1; event.unsubscribe('create', B); }
+        function B() { B.count += 1; event.removeListener('create', B); }
         function C() { C.count += 1; }
 
         A.count = B.count = C.count = 0;
 
         event._callbacks.create = [A, B, C];
 
-        event.publish('create');
+        event.emit('create');
         assert.equal(A.count, 1);
         assert.equal(B.count, 1);
         assert.equal(C.count, 1);
 
-        event.publish('create');
+        event.emit('create');
         assert.equal(A.count, 2);
         assert.equal(B.count, 1);
         assert.equal(C.count, 2);
       }
     },
-    '.unsubscribe(topic)': {
+    '.removeListener(topic)': {
       'should remove all callbacks for topic': function (event) {
-        event.unsubscribe('create');
+        event.removeListener('create');
       }
     },
-    '.unsubscribe(topic)': {
+    '.removeListener(topic)': {
       'should remove all registered callbacks': function (event) {
-        event.unsubscribe();
+        event.removeListener();
         assert.isEmpty(event._callbacks);
       },
     },
     'Broadcast object should also have all methods': function () {
-      ['publish', 'subscribe', 'unsubscribe'].forEach(function (method) {
+      ['emit', 'addListener', 'removeListener'].forEach(function (method) {
         assert.equal(Broadcast[method], Broadcast.prototype[method]);
       });
     }

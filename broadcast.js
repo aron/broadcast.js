@@ -1,4 +1,4 @@
-/*  Broadcast.js - v0.3.1
+/*  Broadcast.js - v0.4.0
  *  Copyright 2011, Aron Carroll
  *  Released under the MIT license
  *  More Information: http://github.com/aron/broadcast.js
@@ -39,8 +39,8 @@
    *
    *   // In the browser.
    *   var events = new Broadcast();
-   *   events.subscribe('say', function (message) { console.log(message); });
-   *   events.publish('say', 'Hello World'); // Logs "Hello World"
+   *   events.addListener('say', function (message) { console.log(message); });
+   *   events.emit('say', 'Hello World'); // Logs "Hello World"
    *
    *   // On the server.
    *   var Broadcast = require('broadcast');
@@ -51,7 +51,8 @@
   function Broadcast(options) {
     this._callbacks = {};
     if (!options || options.alias === true) {
-      this.on = this.subscribe;
+      this.on = this.addListener;
+      this.trigger = this.emit;
     }
   }
 
@@ -60,9 +61,9 @@
    *
    * Examples
    *
-   *   Broadcast.subscribe('say', function (message) { console.log(message); });
-   *   Broadcast.publish('say', 'Hello World'); // Logs "Hello World"
-   *   Broadcast.unsubscribe('say');
+   *   Broadcast.addListener('say', function (message) { console.log(message); });
+   *   Broadcast.emit('say', 'Hello World'); // Logs "Hello World"
+   *   Broadcast.removeListener('say');
    */
   extend(Broadcast, {
 
@@ -71,31 +72,31 @@
      */
     _callbacks: {},
 
-    /* Public: Publishes a topic. Calls all registered callbacks passing in any
+    /* Public: emites a topic. Calls all registered callbacks passing in any
      * arguments provided after the topic string.
      *
      * There is also a special topic called "all" that will fire when any other
-     * topic is published providing the topic published and any additional
+     * topic is emited providing the topic emited and any additional
      * arguments to all callbacks.
      *
-     * topic      - A topic String to publish.
+     * topic      - A topic String to emit.
      * arguments* - All subsequent arguments will be passed into callbacks.
      *
      * Examples
      *
      *   var events = new Broadcast();
-     *   events.subscribe('say', function (message) { console.log(message); });
-     *   events.publish('say', 'Hello World'); // Logs "Hello World"
+     *   events.addListener('say', function (message) { console.log(message); });
+     *   events.emit('say', 'Hello World'); // Logs "Hello World"
      *
-     *   // Subscribe to the special "all" topic.
-     *   events.subscribe('all', function (topic) {
+     *   // addListener to the special "all" topic.
+     *   events.addListener('all', function (topic) {
      *     console.log(topic, arguments[1]);
      *   });
-     *   events.publish('say', 'Hello Again'); // Logs "say Hello World"
+     *   events.emit('say', 'Hello Again'); // Logs "say Hello World"
      *
      * Returns itself for chaining.
      */
-    publish: function (topic /* , arguments... */) {
+    emit: function (topic /* , arguments... */) {
       var callbacks = this._callbacks[topic] || [],
           slice = Array.prototype.slice,
           index = 0, count = callbacks.length;
@@ -105,38 +106,38 @@
       }
 
       if (topic !== 'all') {
-        this.publish.apply(this, ['all'].concat(slice.call(arguments)));
+        this.emit.apply(this, ['all'].concat(slice.call(arguments)));
       }
 
       return this;
     },
 
-    /* Public: Subscribe to a specific topic with a callback. This method also
+    /* Public: addListener to a specific topic with a callback. This method also
      * accepts a single object containing topic/callback pairs as an argument.
      *
      * topic    - A topic String or Object of topic/callback pairs.
-     * callback - Callback Function to call when topic is published.
+     * callback - Callback Function to call when topic is emited.
      *
      * Examples
      *
      *   var events = new Broadcast();
      *
      *   // Register single callback.
-     *   events.subscribe('create', function () {});
+     *   events.addListener('create', function () {});
      *
      *   // Register multiple callbacks.
-     *   events.subscribe({
+     *   events.addListener({
      *     'update', function () {},
      *     'delete', function () {}
      *   );
      *
      * Returns itself for chaining.
      */
-    subscribe: function (topic, callback) {
+    addListener: function (topic, callback) {
       if (arguments.length === 1) {
         for (var key in topic) {
           if (hasOwnProp.call(topic, key)) {
-            this.subscribe(key, topic[key]);
+            this.addListener(key, topic[key]);
           }
         }
       } else {
@@ -154,7 +155,7 @@
      * for that topic are removed. If a topic and function are passed all
      * occurrences of that function are removed.
      *
-     * topic    - A topic String to unsubscribe (optional).
+     * topic    - A topic String to removeListener (optional).
      * callback - A specific callback Function to remove (optional).
      *
      * Examples
@@ -163,7 +164,7 @@
      *
      *   function A() {}
      *
-     *   events.subscribe({
+     *   events.addListener({
      *     'create', A,
      *     'create', function B() {},
      *     'create', function C() {},
@@ -171,13 +172,13 @@
      *     'delete', function E() {}
      *   );
      *
-     *   events.unsubscribe('create', A); // Removes callback A.
-     *   events.unsubscribe('create'); // Removes callbacks for 'create' B & C.
-     *   events.unsubscribe(); // Removes all callbacks for all topics D & E.
+     *   events.removeListener('create', A); // Removes callback A.
+     *   events.removeListener('create'); // Removes callbacks for 'create' B & C.
+     *   events.removeListener(); // Removes all callbacks for all topics D & E.
      *
      * Returns itself for chaining.
      */
-    unsubscribe: function (topic, callback) {
+    removeListener: function (topic, callback) {
       var callbacks = (this._callbacks[topic] || []).slice(),
           index, count;
 
@@ -187,7 +188,7 @@
             if (callbacks[index] === callback) {
               callbacks.splice(index, 1);
               this._callbacks[topic] = callbacks;
-              this.unsubscribe(topic, callback);
+              this.removeListener(topic, callback);
               break;
             }
           }

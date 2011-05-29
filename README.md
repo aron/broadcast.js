@@ -2,39 +2,40 @@ Broadcast.js
 ============
 
 Broadcast provides simple pub/sub methods for use in your objects. It uses
-`.subscribe()`, `.unsubscribe()` and `.publish()` (with `.subscribe()` aliased
-to `.on()`).
+the same event API as Node.js (`.addListener()`, `.removeListener()` and
+`.emit()`). Broadcast also aliases `.addListener()` to `.on()` and `.emit()` to
+`.trigger()` as I prefer them.
 
 Usage
 -----
 
 Broadcast is designed to be used as a constructor to create new instances of
-itself. However the `.subscribe()`, `.unsubscribe()` and `.publish()`
+itself. However the `.addListener()`, `.removeListener()` and `.emit()`
 methods are also available on the `Broadcast` function/object and can be used
 as a  single global pub/sub object.
 
 ```javascript
 var events = new Broadcast();
 
-event.subscribe('change', function () {
+event.addListener('change', function () {
   console.log('Something changed. No idea what though.');
 });
-event.publish('change'); // Message is logged to console.
+event.emit('change'); // Message is logged to console.
 
-event.unsubscribe('change');
-event.publish('change'); // Silence...
+event.removeListener('change');
+event.emit('change'); // Silence...
 ```
 
 Or alternatively using a single global object…
 
 ```javascript
-Broadcast.subscribe('change', function () {
+Broadcast.addListener('change', function () {
   console.log('Something changed. No idea what though.');
 });
-Broadcast.publish('change'); // Message is logged to console.
+Broadcast.emit('change'); // Message is logged to console.
 
-Broadcast.unsubscribe('change');
-Broadcast.publish('change'); // Silence...
+Broadcast.removeListener('change');
+Broadcast.emit('change'); // Silence...
 ```
 
 _NOTE: The method `.on()` is not available on the global object._
@@ -58,8 +59,8 @@ for (var key in Broadcast) {
 }
 
 // If you've been using Broadcast as a global object be sure to call
-// .unsubscribe() to reset your new object.
-myObject.unsubscribe();
+// .removeListener() to reset your new object.
+myObject.removeListener();
 ```
 
 A nicer alternative is to use JavaScripts prototypal inheritance.
@@ -80,12 +81,12 @@ MyObject.prototype.construtor = MyObject;
 API
 ---
 
-### .publish(topic [ , arguments... ])
+### .emit(topic [ , arguments... ]) / .trigger(topic [ , arguments... ])
 
-Publishes a topic. Calls all registered callbacks passing in any
+emites a topic. Calls all registered callbacks passing in any
 arguments provided after the topic string.
 
- - `topic`: A topic String to publish.
+ - `topic`: A topic String to emit.
  - `arguments*`: All subsequent arguments will be passed into callbacks.
 
 Returns itself for chaining.
@@ -94,27 +95,27 @@ Returns itself for chaining.
 
 ```javascript
 var events = new Broadcast();
-events.subscribe('say', function (message) { console.log(message); });
-events.publish('say', 'Hello World'); // Logs "Hello World"
+events.addListener('say', function (message) { console.log(message); });
+events.emit('say', 'Hello World'); // Logs "Hello World"
 ```
 
-### .subscribe(topic, callback) / .on(topic, callback)
+### .addListener(topic, callback) / .on(topic, callback)
 
-Subscribe to a specific topic with a callback.
+addListener to a specific topic with a callback.
 
  - `topic`: A topic String or Object of topic/callback pairs.
- - `callback`: Callback Function to call when topic is published.
+ - `callback`: Callback Function to call when topic is emited.
 
 Returns itself for chaining.
 
 #### Examples
 
 ```javascript
-events.subscribe('create', function () {});
+events.addListener('create', function () {});
 ```
 
 There is also a special topic called __"all"__ that will fire when any other
-topic is published. It provides the name of the topic published and any
+topic is emited. It provides the name of the topic emited and any
 additional arguments to registered callbacks. This feature was taken from the
 JavaScript framework [Backbone.js][#backbone] where it is often used to proxy
 calls through other objects.
@@ -125,42 +126,42 @@ calls through other objects.
 var model.events = new Broadcast();
 var view.events  = new Broadcast();
 
-view.events.subscribe('changed', function (properties) {
+view.events.addListener('changed', function (properties) {
   updateView(properties);
 });
 
-// Subscribe to the special "all" topic and rebroadcast through view.events.
-model.events.subscribe('all', function (topic) {
-  view.events.publish.apply(view.events, arguments);
+// addListener to the special "all" topic and rebroadcast through view.events.
+model.events.addListener('all', function (topic) {
+  view.events.emit.apply(view.events, arguments);
 });
-model.events.publish('changed', {name: 'Bill'});
+model.events.emit('changed', {name: 'Bill'});
 ```
 
 [#backbone]: http://documentcloud.github.com/backbone/
 
-### .subscribe(topics) / .on(topics)
+### .addListener(topics) / .on(topics)
 
-Subscribe to multiple topics. Returns itself for chaining.
+addListener to multiple topics. Returns itself for chaining.
 
 - `topics`: An Object of topic/callback pairs.
 
 #### Examples
 
 ```javascript
-events.subscribe({
+events.addListener({
   'update', function () {},
   'delete', function () {}
 );
 ```
 
-### .unsubscribe(topic [ , callback ])
+### .removeListener(topic [ , callback ])
 
 Unbinds registered listeners for a topic. If no arguments are
 passed all callbacks are removed. If a topic is provided only callbacks
 for that topic are removed. If a topic and function are passed all
 occurrences of that function are removed. Returns itself for chaining.
 
- - `topic`: A topic String to unsubscribe (optional).
+ - `topic`: A topic String to removeListener (optional).
  - `callback`: A specific callback Function to remove (optional).
 
 #### Examples
@@ -170,7 +171,7 @@ var events = new Broadcast();
 
 function A() {}
 
-events.subscribe({
+events.addListener({
   'create', A,
   'create', function B() {},
   'create', function C() {},
@@ -178,9 +179,9 @@ events.subscribe({
   'delete', function E() {}
 );
 
-events.unsubscribe('create', A); // Removes callback A.
-events.unsubscribe('create'); // Removes callbacks for 'create' B & C.
-events.unsubscribe(); // Removes all callbacks for all topics D & E.
+events.removeListener('create', A); // Removes callback A.
+events.removeListener('create'); // Removes callbacks for 'create' B & C.
+events.removeListener(); // Removes all callbacks for all topics D & E.
 ```
 
 ### Broadcast.noConflict()
@@ -215,7 +216,7 @@ Tests can then be run with the following command.
 Roadmap
 -------
 
- - 0.4: Implement topic namespaces.
+ - 0.5: Implement topic namespaces.
 
 License
 -------
