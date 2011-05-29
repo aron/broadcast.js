@@ -1,4 +1,4 @@
-/*  Broadcast.js - v0.3.x
+/*  Broadcast.js - v0.3.1
  *  Copyright 2011, Aron Carroll
  *  Released under the MIT license
  *  More Information: http://github.com/aron/broadcast.js
@@ -9,7 +9,7 @@
   var _Broadcast = module.Broadcast,
       hasOwnProp = Object.prototype.hasOwnProperty;
 
-  /* Extends an obejct with properties from another
+  /* Extends an object with properties from another
    *
    * target - The Object that is to be extended.
    * obejct - An Object containing properties.
@@ -219,7 +219,7 @@
    * Returns the Broadcast function.
    */
   Broadcast.noConflict = function () {
-    exports.Broadcast = _Broadcast;
+    module.Broadcast = _Broadcast;
     return Broadcast;
   };
 
