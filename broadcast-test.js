@@ -2,33 +2,27 @@ var Broadcast = require('broadcast'),
     assert = require('assert'),
     vows = require('vows');
 
-// Patching an issue in the assert.include() that is shipped with Vows 0.5.8
-// that fails to error when a non String/Array/Object is provided for the
-// actual argument.
-function isArray(obj) {
-  return Array.isArray(obj);
+var $ = function eventFactory(callback, namespace) {
+  return {callback: callback, namespace: namespace || null};
 }
 
-function isString(obj) {
-  return typeof(obj) === 'string' || obj instanceof String;
-}
+assert.includesCallback = function (wrappers, callback, message) {
+  assert.includesCallbackWithNamespace(wrappers, callback, message);
+};
 
-function isObject(obj) {
-  return typeof(obj) === 'object' && obj && !isArray(obj);
-}
-
-assert.include = function (actual, expected, message) {
-  if ((function (obj) {
-    if (isArray(obj) || isString(obj)) {
-      return obj.indexOf(expected) === -1;
-    } else if (isObject(actual)) {
-      return ! obj.hasOwnProperty(expected);
+assert.includesCallbackWithNamespace = function (wrappers, callback, message, namespace) {
+  var ignoreNamespace = arguments.length === 3;
+  if (Array.isArray(wrappers) && (function () {
+    for (var index = 0, count = wrappers.length; index < count; index += 1) {
+      if (wrappers[index].callback === callback && (ignoreNamespace || wrappers[index].namespace === namespace)) {
+        return false;
+      }
     }
     return true;
-  })(actual)) {
-    assert.fail(actual, expected, message || "expected {actual} to include {expected}", "include", assert.include);
+  })()) {
+    assert.fail(wrappers, callback, message || "expected {actual} to include {expected}", "include", assert.includesCallback);
   }
-};
+}
 
 vows.describe('Broadcast').addBatch({
   'new Broadcast()': {
@@ -59,23 +53,23 @@ vows.describe('Broadcast').addBatch({
     topic: function () {
       var event = new Broadcast();
       event._callbacks.change = [
-        function A() { A.args = arguments; A.called = true; },
-        function B() { B.args = arguments; B.called = true; },
-        function C() { C.args = arguments; C.called = true; }
+        $(function A() { A.args = arguments; A.called = true; }),
+        $(function B() { B.args = arguments; B.called = true; }),
+        $(function C() { C.args = arguments; C.called = true; })
       ];
       return event;
     },
     'should call all registered callbacks for topic': function (event) {
       event.emit('change');
-      event._callbacks['change'].forEach(function (callback) {
-        assert.isTrue(callback.called);
+      event._callbacks['change'].forEach(function (wrapper) {
+        assert.isTrue(wrapper.callback.called);
       });
     },
     'should pass any additional arguments into the callback': function (event) {
       var params = [20, 'hello', {my: 'object'}];
       event.emit.apply(event, ['change'].concat(params));
-      event._callbacks['change'].forEach(function (callback) {
-        var args = Array.prototype.slice.call(callback.args);
+      event._callbacks['change'].forEach(function (wrapper) {
+        var args = Array.prototype.slice.call(wrapper.callback.args);
         assert.deepEqual(args, params);
       });
     },
@@ -105,14 +99,14 @@ vows.describe('Broadcast').addBatch({
     'should register a callback for a topic': function (event) {
       function A() {}
       event.addListener('change', A);
-      assert.include(event._callbacks.change, A);
+      assert.includesCallback(event._callbacks.change, A);
     },
     'should register a callback for many space delimited topics': function (event) {
       function B() {}
       event.addListener('create update delete', B);
-      assert.include(event._callbacks.create, B);
-      assert.include(event._callbacks.update, B);
-      assert.include(event._callbacks.delete, B);
+      assert.includesCallback(event._callbacks.create, B);
+      assert.includesCallback(event._callbacks.update, B);
+      assert.includesCallback(event._callbacks.delete, B);
     }
   },
   '.addListener(namespace, callback)': {
@@ -122,15 +116,15 @@ vows.describe('Broadcast').addBatch({
       event.addListener('change.my-namespace', A);
       
       var callbackList = event._callbacks.change;
-      assert.include(callbackList, A);
-      assert.include(callbackList._namespaces['.my-namespace'], A);
+      assert.includesCallback(callbackList, A);
+      assert.includesCallbackWithNamespace(callbackList, A, '.my-namespace');
     },
     'should register a callback for many space delimited topics': function (event) {
       function B() {}
       event.addListener('create update delete', B);
-      assert.include(event._callbacks.create, B);
-      assert.include(event._callbacks.update, B);
-      assert.include(event._callbacks.delete, B);
+      assert.includesCallback(event._callbacks.create, B);
+      assert.includesCallback(event._callbacks.update, B);
+      assert.includesCallback(event._callbacks.delete, B);
     }
   },
   '.addListener(callbacks)': {
@@ -141,56 +135,65 @@ vows.describe('Broadcast').addBatch({
       function C() {}
 
       event.addListener({create: A, update: B, destroy: C});
-      assert.include(event._callbacks.create, A);
-      assert.include(event._callbacks.update, B);
-      assert.include(event._callbacks.destroy, C);
+      assert.includesCallback(event._callbacks.create, A);
+      assert.includesCallback(event._callbacks.update, B);
+      assert.includesCallback(event._callbacks.destroy, C);
     }
   },
   '.removeListener()': {
     topic: function () {
       var event = new Broadcast();
-      event._callbacks = {
-        create: [
-          function A() {},
-          function B() {},
-          function C() {}
-        ],
-        update: [
-          function D() {}
-        ],
-        destroy: [
-          function E() {}
-        ]
+      event._reload = function () {
+        event._callbacks = {
+          create: [
+            $(function A() {}),
+            $(function B() {}),
+            $(function C() {})
+          ],
+          update: [
+            $(function D() {})
+          ],
+          destroy: [
+            $(function E() {})
+          ]
+        };
+        return this;
       };
-      return event;
+      return event._reload();
     },
     '.removeListener(topic, callback)': {
       'should remove provided callback from topic': function (event) {
-        var A = event._callbacks.create[0],
-            B = event._callbacks.create[1],
-            C = event._callbacks.create[2];
+        event._reload();
+
+        var A = event._callbacks.create[0].callback,
+            B = event._callbacks.create[1].callback,
+            C = event._callbacks.create[2].callback;
 
         event.removeListener('create', B);
-        assert.deepEqual(event._callbacks.create, [A, C]);
+        assert.deepEqual(event._callbacks.create, [$(A), $(C)]);
       },
       'should remove multiple occurrences of callback from topic': function (event) {
-        var A = event._callbacks.create[0],
-            B = event._callbacks.create[1],
-            C = event._callbacks.create[2];
+        event._reload();
 
-        event._callbacks.create = [A, B, C, B];
+        var A = event._callbacks.create[0].callback,
+            B = event._callbacks.create[1].callback,
+            C = event._callbacks.create[2].callback;
+
+        event._callbacks.create = [$(A), $(B), $(C), $(B)];
 
         event.removeListener('create', B);
-        assert.deepEqual(event._callbacks.create, [A, C]);
+        assert.deepEqual(event._callbacks.create, [$(A), $(C)]);
       },
       'should allow a callback to unbind itself': function (event) {
+        event._reload();
+
         function A() { A.count += 1; }
         function B() { B.count += 1; event.removeListener('create', B); }
         function C() { C.count += 1; }
 
         A.count = B.count = C.count = 0;
 
-        event._callbacks.create = [A, B, C];
+        event._callbacks.create = [$(A), $(B), $(C)];
 
         event.emit('create');
         assert.equal(A.count, 1);
@@ -205,7 +208,9 @@ vows.describe('Broadcast').addBatch({
     },
     '.removeListener(topic)': {
       'should remove all callbacks for topic': function (event) {
+        event._reload();
         event.removeListener('create');
+        assert.isUndefined(event._callbacks.create);
       }
     },
     '.removeListener()': {
@@ -213,6 +218,28 @@ vows.describe('Broadcast').addBatch({
         event.removeListener();
         assert.isEmpty(event._callbacks);
       },
+    },
+    '.removeListener(namespace, callback)': {
+      'should remove all occurrences of callback in namespace': function (event) {
+        function A() {}
+        event.removeListener('.my-namespace', A);
+      }
+    },
+    '.removeListener(namespace)': {
+      'should remove all callbacks in namespace': function (event) {
+        event.removeListener('.my-namespace');
+      }
+    },
+    '.removeListener(topicandnamespace, callback)': {
+      'should remove callback for topic with namespace': function (event) {
+        function A() {}
+        event.removeListener('change.my-namespace', A);
+      }
+    },
+    '.removeListener(topicandnamespace)': {
+      'should remove all callbacks for topic with namespace': function (event) {
+        event.removeListener('change.my-namespace');
+      }
     },
     'Broadcast object should also have all methods': function () {
       ['emit', 'addListener', 'removeListener'].forEach(function (method) {

@@ -102,7 +102,7 @@
           index = 0, count = callbacks.length;
 
       for (; index < count; index += 1) {
-        callbacks[index].apply(this, slice.call(arguments, 1));
+        callbacks[index].callback.apply(this, slice.call(arguments, 1));
       }
 
       if (topic !== 'all') {
@@ -148,10 +148,11 @@
       } else {
         (function registerTopics(topics) {
           var index = 0, count = topics.length,
-              namespaceIndex, topic, cache, namespace;
+              namespaceIndex, topic, namespace;
 
           for (;index < count; index += 1) {
             topic = topics[index];
+
             namespaceIndex = topic.lastIndexOf('.');
             if (namespaceIndex > -1) {
               namespace = topic.slice(namespaceIndex);
@@ -161,15 +162,10 @@
             if (!this._callbacks[topic]) {
               this._callbacks[topic] = [];
             }
-            this._callbacks[topic].push(callback);
-
-            // Store namespaced callbacks on the array.
-            cache = this._callbacks[topic];
-            if (!cache[namespace]) {
-              cache._namespaces = {};
-              cache._namespaces[namespace] = [];
-            }
-            cache._namespaces[namespace].push(callback);
+            this._callbacks[topic].push({
+              callback: callback,
+              namespace: namespace || null
+            });
           }
         }).call(this, topic.split(' '));
       }
@@ -206,13 +202,19 @@
      * Returns itself for chaining.
      */
     removeListener: function (topic, callback) {
-      var callbacks = (this._callbacks[topic] || []).slice(),
-          index, count;
+      var namespaceIndex = (topic || '').lastIndexOf('.'),
+          namespace, callbacks, index, count;
 
+      if (namespaceIndex > -1) {
+        namespace = topic.slice(namespaceIndex);
+        topic = topic.slice(0, namespaceIndex);
+      }
+
+      callbacks = (this._callbacks[topic] || []).slice();
       if (arguments.length) {
         if (callbacks.length && callback) {
           for (index = 0, count = callbacks.length; index < count; index += 1) {
-            if (callbacks[index] === callback) {
+            if (callbacks[index].callback === callback) {
               callbacks.splice(index, 1);
               this._callbacks[topic] = callbacks;
               this.removeListener(topic, callback);
