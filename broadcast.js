@@ -147,15 +147,29 @@
         }
       } else {
         (function registerTopics(topics) {
-          var index = 0, count = topics.length, topic;
+          var index = 0, count = topics.length,
+              namespaceIndex, topic, cache, namespace;
 
           for (;index < count; index += 1) {
             topic = topics[index];
+            namespaceIndex = topic.lastIndexOf('.');
+            if (namespaceIndex > -1) {
+              namespace = topic.slice(namespaceIndex);
+              topic = topic.slice(0, namespaceIndex);
+            }
 
             if (!this._callbacks[topic]) {
               this._callbacks[topic] = [];
             }
             this._callbacks[topic].push(callback);
+
+            // Store namespaced callbacks on the array.
+            cache = this._callbacks[topic];
+            if (!cache[namespace]) {
+              cache._namespaces = {};
+              cache._namespaces[namespace] = [];
+            }
+            cache._namespaces[namespace].push(callback);
           }
         }).call(this, topic.split(' '));
       }

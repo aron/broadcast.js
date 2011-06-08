@@ -115,6 +115,24 @@ vows.describe('Broadcast').addBatch({
       assert.include(event._callbacks.delete, B);
     }
   },
+  '.addListener(namespace, callback)': {
+    topic: new Broadcast(),
+    'should register a callback for a name-spaced topic': function (event) {
+      function A() {}
+      event.addListener('change.my-namespace', A);
+      
+      var callbackList = event._callbacks.change;
+      assert.include(callbackList, A);
+      assert.include(callbackList._namespaces['.my-namespace'], A);
+    },
+    'should register a callback for many space delimited topics': function (event) {
+      function B() {}
+      event.addListener('create update delete', B);
+      assert.include(event._callbacks.create, B);
+      assert.include(event._callbacks.update, B);
+      assert.include(event._callbacks.delete, B);
+    }
+  },
   '.addListener(callbacks)': {
     topic: new Broadcast(),
     'should register multiple topic/callback pairs': function (event) {
