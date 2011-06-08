@@ -101,7 +101,10 @@ events.emit('say', 'Hello World'); // Logs "Hello World"
 
 ### .addListener(topic, callback) / .on(topic, callback)
 
-addListener to a specific topic with a callback.
+Subscribe to a specific topic with a callback. A single callback can also
+subscribe to many topics by providing a space delimited string of topic names.
+Finally the method also accepts a single object containing topic/callback pairs
+as an argument. See below for details.
 
  - `topic`: A topic String or Object of topic/callback pairs.
  - `callback`: Callback Function to call when topic is emited.
@@ -111,7 +114,13 @@ Returns itself for chaining.
 #### Examples
 
 ```javascript
+var events = new Broadcast();
+
+// Register single callback.
 events.addListener('create', function () {});
+
+// Register a single callback to multiple topics.
+events.addListener('create update delete', function () {});
 ```
 
 There is also a special topic called __"all"__ that will fire when any other
@@ -148,8 +157,10 @@ addListener to multiple topics. Returns itself for chaining.
 #### Examples
 
 ```javascript
+var events = new Broadcast();
+
 events.addListener({
-  'update', function () {},
+  'create update', function () {},
   'delete', function () {}
 );
 ```

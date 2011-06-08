@@ -106,6 +106,13 @@ vows.describe('Broadcast').addBatch({
       function A() {}
       event.addListener('change', A);
       assert.include(event._callbacks.change, A);
+    },
+    'should register a callback for many space delimited topics': function (event) {
+      function B() {}
+      event.addListener('create update delete', B);
+      assert.include(event._callbacks.create, B);
+      assert.include(event._callbacks.update, B);
+      assert.include(event._callbacks.delete, B);
     }
   },
   '.addListener(callbacks)': {

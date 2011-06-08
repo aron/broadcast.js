@@ -1,4 +1,4 @@
-/*  Broadcast.js - v0.4.0
+/*  Broadcast.js - v0.4.x
  *  Copyright 2011, Aron Carroll
  *  Released under the MIT license
  *  More Information: http://github.com/aron/broadcast.js
@@ -112,8 +112,10 @@
       return this;
     },
 
-    /* Public: addListener to a specific topic with a callback. This method also
-     * accepts a single object containing topic/callback pairs as an argument.
+    /* Public: Subscribe to a specific topic with a callback. A single
+     * callback can also subscribe to many topics by providing a space
+     * delimited string of topic names. Finally the method also accepts a
+     * single object containing topic/callback pairs as an argument.
      *
      * topic    - A topic String or Object of topic/callback pairs.
      * callback - Callback Function to call when topic is emited.
@@ -124,6 +126,9 @@
      *
      *   // Register single callback.
      *   events.addListener('create', function () {});
+     *
+     *   // Register a single callback to multiple topics.
+     *   events.addListener('create update delete', function () {});
      *
      *   // Register multiple callbacks.
      *   events.addListener({
@@ -141,10 +146,18 @@
           }
         }
       } else {
-        if (!this._callbacks[topic]) {
-          this._callbacks[topic] = [];
-        }
-        this._callbacks[topic].push(callback);
+        (function registerTopics(topics) {
+          var index = 0, count = topics.length, topic;
+
+          for (;index < count; index += 1) {
+            topic = topics[index];
+
+            if (!this._callbacks[topic]) {
+              this._callbacks[topic] = [];
+            }
+            this._callbacks[topic].push(callback);
+          }
+        }).call(this, topic.split(' '));
       }
 
       return this;
