@@ -38,7 +38,7 @@ Broadcast.removeListener('change');
 Broadcast.emit('change'); // Silence...
 ```
 
-_NOTE: The method `.on()` is not available on the global object._
+_NOTE: The methods `.on()` and `.trigger()` are not available on the global object._
 
 ### Options
 
@@ -130,7 +130,7 @@ view.events.addListener('changed', function (properties) {
   updateView(properties);
 });
 
-// addListener to the special "all" topic and rebroadcast through view.events.
+// Subscribe to the special "all" topic and rebroadcast through view.events.
 model.events.addListener('all', function (topic) {
   view.events.emit.apply(view.events, arguments);
 });
