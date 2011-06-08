@@ -2,6 +2,34 @@ var Broadcast = require('broadcast'),
     assert = require('assert'),
     vows = require('vows');
 
+// Patching an issue in the assert.include() that is shipped with Vows 0.5.8
+// that fails to error when a non String/Array/Object is provided for the
+// actual argument.
+function isArray(obj) {
+  return Array.isArray(obj);
+}
+
+function isString(obj) {
+  return typeof(obj) === 'string' || obj instanceof String;
+}
+
+function isObject(obj) {
+  return typeof(obj) === 'object' && obj && !isArray(obj);
+}
+
+assert.include = function (actual, expected, message) {
+  if ((function (obj) {
+    if (isArray(obj) || isString(obj)) {
+      return obj.indexOf(expected) === -1;
+    } else if (isObject(actual)) {
+      return ! obj.hasOwnProperty(expected);
+    }
+    return true;
+  })(actual)) {
+    assert.fail(actual, expected, message || "expected {actual} to include {expected}", "include", assert.include);
+  }
+};
+
 vows.describe('Broadcast').addBatch({
   'new Broadcast()': {
     topic: new Broadcast(),
@@ -71,27 +99,26 @@ vows.describe('Broadcast').addBatch({
         assert.equal(onAll.count, 1);
       }
     }
-  },
-  '.addListener()': {
+  },    
+  '.addListener(topic, callback)': {
     topic: new Broadcast(),
-    '.addListener(topic, callback)': {
-      'should register a callback for a topic': function (event) {
-        function A() {}
-        event.addListener('change', A);
-        assert.include(event._callbacks.change, A);
-      }
-    },
-    '.addListener(callbacks)': {
-      'should register multiple topic/callback pairs': function (event) {
-        function A() {}
-        function B() {}
-        function C() {}
+    'should register a callback for a topic': function (event) {
+      function A() {}
+      event.addListener('change', A);
+      assert.include(event._callbacks.change, A);
+    }
+  },
+  '.addListener(callbacks)': {
+    topic: new Broadcast(),
+    'should register multiple topic/callback pairs': function (event) {
+      function A() {}
+      function B() {}
+      function C() {}
 
-        event.addListener({create: A, update: B, destroy: C});
-        assert.include(event._callbacks.create, A);
-        assert.include(event._callbacks.update, B);
-        assert.include(event._callbacks.destroy, C);
-      }
+      event.addListener({create: A, update: B, destroy: C});
+      assert.include(event._callbacks.create, A);
+      assert.include(event._callbacks.update, B);
+      assert.include(event._callbacks.destroy, C);
     }
   },
   '.removeListener()': {
@@ -156,7 +183,7 @@ vows.describe('Broadcast').addBatch({
         event.removeListener('create');
       }
     },
-    '.removeListener(topic)': {
+    '.removeListener()': {
       'should remove all registered callbacks': function (event) {
         event.removeListener();
         assert.isEmpty(event._callbacks);
