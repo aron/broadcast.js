@@ -117,6 +117,11 @@
      * delimited string of topic names. Finally the method also accepts a
      * single object containing topic/callback pairs as an argument.
      *
+     * Events can also be name-spaced ala jQuery to allow easy removal of
+     * muliple callbacks in one call to .removeListener(). To namespace a
+     * callback simply suffix the topic with a period (.) followed by your
+     * namespace.
+     *
      * topic    - A topic String or Object of topic/callback pairs.
      * callback - Callback Function to call when topic is emited.
      *
@@ -135,6 +140,13 @@
      *     'update', function () {},
      *     'delete', function () {}
      *   );
+     *
+     *   // Register a callback with a namespace.
+     *   events.addListener('create.my-namespace', function () {});
+     *   events.addListener('update.my-namespace', function () {});
+     *
+     *   // No longer requires a callback to be passed to unbind.
+     *   events.removeListener('.my-namespace', function () {});
      *
      * Returns itself for chaining.
      */
@@ -183,21 +195,28 @@
      *
      * Examples
      *
-     *   var events = new Broadcast();
-     *
      *   function A() {}
      *
+     *   events.addListener('create', A);
+     *   events.addListener('create', function B() {});
      *   events.addListener({
-     *     'create', A,
-     *     'create', function B() {},
      *     'create', function C() {},
      *     'update', function D() {},
      *     'delete', function E() {}
      *   );
+     *   events.addListener('custom.my-namespace', function F() {});
      *
-     *   events.removeListener('create', A); // Removes callback A.
-     *   events.removeListener('create'); // Removes callbacks for 'create' B & C.
-     *   events.removeListener(); // Removes all callbacks for all topics D & E.
+     *   // Removes callback (A).
+     *   events.removeListener('create', A);
+     *
+     *   // Removes callbacks for topic 'create' (B & C).
+     *   events.removeListener('create');
+     *
+     *   // Removes callbacks for namespace '.my-namespace' (F).
+     *   events.removeListener('.my-namespace');
+     *
+     *   // Removes all callbacks for all topics (D & E).
+     *   events.removeListener();
      *
      * Returns itself for chaining.
      */

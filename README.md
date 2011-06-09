@@ -123,6 +123,23 @@ events.addListener('create', function () {});
 events.addListener('create update delete', function () {});
 ```
 
+Events can also be name-spaced ala jQuery to allow easy removal of muliple
+callbacks in one call to .removeListener(). To namespace a callback simply
+suffix the topic with a period (.) followed by your namespace.
+
+#### Examples
+
+```javascript
+var events = new Broadcast();
+
+// Bind some events with a custom namespace.
+events.addListener('create.list-view update.list-view', function () {});
+events.addListener('delete.list-view', function () {});
+
+// All events under the namespace are now unbound.
+events.removeListener('.list-view');
+```
+
 There is also a special topic called __"all"__ that will fire when any other
 topic is emited. It provides the name of the topic emited and any
 additional arguments to registered callbacks. This feature was taken from the
@@ -182,17 +199,19 @@ var events = new Broadcast();
 
 function A() {}
 
+events.addListener('create', A);
+events.addListener('create', function B() {});
 events.addListener({
-  'create', A,
-  'create', function B() {},
   'create', function C() {},
   'update', function D() {},
   'delete', function E() {}
 );
+events.addListener('custom.my-namespace', function F() {});
 
-events.removeListener('create', A); // Removes callback A.
-events.removeListener('create'); // Removes callbacks for 'create' B & C.
-events.removeListener(); // Removes all callbacks for all topics D & E.
+events.removeListener('create', A); // Removes callback (A).
+events.removeListener('create'); // Removes callbacks for 'create' (B & C).
+events.removeListener('.my-namespace'); // Removes callbacks for '.my-namespace' (F).
+events.removeListener(); // Removes all callbacks for all topics (D & E).
 ```
 
 ### Broadcast.noConflict()
@@ -223,11 +242,6 @@ Tests can then be run with the following command.
     $ vows broadcast-test.js
 
 [#vows]: http://vowsjs.org/
-
-Roadmap
--------
-
- - 0.5: Implement topic namespaces.
 
 License
 -------
