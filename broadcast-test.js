@@ -37,16 +37,16 @@ vows.describe('Broadcast').addBatch({
     'should alias .addListener() to .on()': function (event) {
       assert.equal(event.on, event.addListener, true);
     },
-    'should alias .emit() to .trigger()': function (event) {
-      assert.equal(event.trigger, event.emit, true);
+    'should alias .emit() to .dispatch()': function (event) {
+      assert.equal(event.dispatch, event.emit, true);
     },
     'new Broadcast(options)': {
       topic: new Broadcast({alias: false}),
       'should NOT alias .addListener() to .on()': function (event) {
         assert.isUndefined(event.on);
       },
-      'should NOT alias .emit() to .trigger()': function (event) {
-        assert.isUndefined(event.trigger);
+      'should NOT alias .emit() to .dispatch()': function (event) {
+        assert.isUndefined(event.dispatch);
       }
     }
   },

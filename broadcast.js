@@ -52,7 +52,7 @@
     this._callbacks = {};
     if (!options || options.alias === true) {
       this.on = this.addListener;
-      this.trigger = this.emit;
+      this.dispatch = this.emit;
     }
   }
 

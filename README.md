@@ -4,7 +4,7 @@ Broadcast.js
 Broadcast provides simple pub/sub methods for use in your objects. It uses
 the same event API as Node.js (`.addListener()`, `.removeListener()` and
 `.emit()`). Broadcast also aliases `.addListener()` to `.on()` and `.emit()` to
-`.trigger()` as I prefer them.
+`.dispatch()` as I prefer them.
 
 Usage
 -----
@@ -38,7 +38,7 @@ Broadcast.removeListener('change');
 Broadcast.emit('change'); // Silence...
 ```
 
-_NOTE: The methods `.on()` and `.trigger()` are not available on the global object._
+_NOTE: The methods `.on()` and `.dispatch()` are not available on the global object._
 
 ### Options
 
@@ -81,7 +81,7 @@ MyObject.prototype.construtor = MyObject;
 API
 ---
 
-### .emit(topic [ , arguments... ]) / .trigger(topic [ , arguments... ])
+### .emit(topic [ , arguments... ]) / .dispatch(topic [ , arguments... ])
 
 emites a topic. Calls all registered callbacks passing in any
 arguments provided after the topic string.
