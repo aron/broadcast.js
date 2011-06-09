@@ -221,45 +221,42 @@
      * Returns itself for chaining.
      */
     removeListener: function (topic, callback) {
-      var callbacks = this._callbacks,
+      var callbacks = {},
+          original = topic,
           namespaceIndex = (topic || '').lastIndexOf('.'),
-          original = topic, namespace, wrappers, index, count, key;
+          namespace, wrappers, index, count, key;
 
       if (namespaceIndex > -1) {
         namespace = original.slice(namespaceIndex);
         topic = original.slice(0, namespaceIndex);
       }
 
-      wrappers = (callbacks[topic] || []).slice();
+      wrappers = callbacks[topic] || [];
+      callbacks[topic] = wrappers;
+
       if (arguments.length) {
-        if (wrappers.length && callback) {
-          for (index = 0, count = wrappers.length; index < count; index += 1) {
+        if (wrappers.length || callback || namespace) {
 
-            if (wrappers[index].callback === callback && (!namespace || wrappers[index].namespace === namespace)) {
-              wrappers.splice(index, 1);
-              callbacks[topic] = wrappers;
-              this.removeListener(original, callback);
-              break;
-            }
-          }
-        } else if (namespace)  {
+          callbacks = wrappers.length ? callbacks : this._callbacks;
           for (key in callbacks) {
-            wrappers = callbacks[key].slice();
 
+            wrappers = callbacks[key].slice();
             for (index = 0, count = wrappers.length; index < count; index += 1) {
-              if (wrappers[index].namespace === namespace &&
-                 (!topic || key === topic) &&
-                 (!callback || wrappers[index].callback === callback)) {
+
+              if ((!topic     || key === topic) &&
+                  (!callback  || wrappers[index].callback  === callback) &&
+                  (!namespace || wrappers[index].namespace === namespace)) {
 
                 wrappers.splice(index, 1);
-                callbacks[key] = wrappers;
+                this._callbacks[key] = wrappers;
                 this.removeListener(original, callback);
+
                 break;
               }
             }
           }
         } else {
-          delete callbacks[topic];
+          delete this._callbacks[topic];
         }
       } else {
         this._callbacks = {};
