@@ -2,6 +2,7 @@ var Broadcast = require('broadcast'),
     assert = require('assert'),
     vows = require('vows');
 
+// Factory for creating event wrappers.
 var $ = function eventFactory(callback, namespace) {
   return {callback: callback, namespace: namespace || null};
 }
@@ -93,7 +94,7 @@ vows.describe('Broadcast').addBatch({
         assert.equal(onAll.count, 1);
       }
     }
-  },    
+  },
   '.addListener(topic, callback)': {
     topic: new Broadcast(),
     'should register a callback for a topic': function (event) {
@@ -114,7 +115,7 @@ vows.describe('Broadcast').addBatch({
     'should register a callback for a name-spaced topic': function (event) {
       function A() {}
       event.addListener('change.my-namespace', A);
-      
+
       var callbackList = event._callbacks.change;
       assert.includesCallback(callbackList, A);
       assert.includesCallbackWithNamespace(callbackList, A, '.my-namespace');
@@ -144,6 +145,8 @@ vows.describe('Broadcast').addBatch({
     topic: function () {
       var event = new Broadcast();
       event._reload = function () {
+        function Z() {}
+
         event._callbacks = {
           create: [
             $(function A() {}),
@@ -155,6 +158,16 @@ vows.describe('Broadcast').addBatch({
           ],
           destroy: [
             $(function E() {})
+          ],
+          custom: [
+            $(function F() {}, '.namespaced'),
+            $(function G() {}),
+            $(function H() {}, '.namespaced'),
+            $(Z, '.namespaced')
+          ],
+          custom2: [
+            $(function I() {}, '.namespaced'),
+            $(Z, '.namespaced')
           ]
         };
         return this;
@@ -215,30 +228,66 @@ vows.describe('Broadcast').addBatch({
     },
     '.removeListener()': {
       'should remove all registered callbacks': function (event) {
+        event._reload();
         event.removeListener();
         assert.isEmpty(event._callbacks);
       },
     },
     '.removeListener(namespace, callback)': {
       'should remove all occurrences of callback in namespace': function (event) {
-        function A() {}
-        event.removeListener('.my-namespace', A);
+        event._reload();
+
+        var F = event._callbacks.custom[0].callback,
+            G = event._callbacks.custom[1].callback,
+            H = event._callbacks.custom[2].callback,
+            Z = event._callbacks.custom[3].callback;
+
+        event.removeListener('.namespaced', F);
+
+        assert.deepEqual(event._callbacks.custom, [$(G), $(H, '.namespaced'), $(Z, '.namespaced')]);
       }
     },
     '.removeListener(namespace)': {
       'should remove all callbacks in namespace': function (event) {
-        event.removeListener('.my-namespace');
+        event._reload();
+
+        var F = event._callbacks.custom[0].callback,
+            G = event._callbacks.custom[1].callback;
+
+        event.removeListener('.namespaced');
+
+        assert.deepEqual(event._callbacks.custom, [$(G)]);
+        assert.deepEqual(event._callbacks.custom2, []);
       }
     },
     '.removeListener(topicandnamespace, callback)': {
       'should remove callback for topic with namespace': function (event) {
-        function A() {}
-        event.removeListener('change.my-namespace', A);
+        event._reload();
+
+        var $F = event._callbacks.custom[0],
+            $G = event._callbacks.custom[1],
+            $H = event._callbacks.custom[2],
+            $Z = event._callbacks.custom[3],
+            $I = event._callbacks.custom2[0];
+
+        event.removeListener('custom.namespaced', $Z.callback);
+
+        assert.deepEqual(event._callbacks.custom, [$F, $G, $H]);
+        assert.deepEqual(event._callbacks.custom2, [$I, $Z]);
       }
     },
     '.removeListener(topicandnamespace)': {
       'should remove all callbacks for topic with namespace': function (event) {
-        event.removeListener('change.my-namespace');
+        event._reload();
+
+        var $G = event._callbacks.custom[1],
+            $I = event._callbacks.custom2[0],
+            $Z = event._callbacks.custom2[1];
+
+        event.removeListener('custom.namespaced');
+
+        assert.deepEqual(event._callbacks.custom, [$G]);
+        assert.deepEqual(event._callbacks.custom2, [$I, $Z]);
       }
     },
     'Broadcast object should also have all methods': function () {
