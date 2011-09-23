@@ -30,6 +30,18 @@
     return target;
   }
 
+  /* Parses a topic string returning an object with topic and namespace
+   * properties.
+   *
+   * topic - A user provided topic string.
+   *
+   * Examples
+   *
+   *   parseTopic('all'); //=> {topic: "all", namespace: null}
+   *   parseTopic('custom.plugin'); //=> {topic: "custom", namespace: "plugin"}
+   *
+   * Returns an object.
+   */
   function parseTopic(topic) {
     var namespaceIndex = topic.lastIndexOf('.'),
         namespace = null;
@@ -63,8 +75,8 @@
   function Broadcast(options) {
     this._callbacks = {};
     if (!options || options.alias === true) {
-      this.on = this.addListener;
-      this.dispatch = this.emit;
+      this.on   = this.addListener;
+      this.fire = this.emit;
     }
   }
 
