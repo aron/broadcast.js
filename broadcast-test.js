@@ -74,6 +74,28 @@ vows.describe('Broadcast').addBatch({
         assert.deepEqual(args, params);
       });
     },
+    '.emit(namespace)': {
+      topic: function () {
+        var event = new Broadcast();
+        event._callbacks.change = [
+          $(function A() { A.args = arguments; A.called = true; }, '.ns'),
+          $(function B() { B.args = arguments; B.called = true; }),
+          $(function C() { C.args = arguments; C.called = true; }, '.ns'),
+          $(function D() { D.args = arguments; D.called = true; })
+        ];
+        return event;
+      },
+      'should only emit the callbacks under the provided namespace': function (event) {
+        event.emit('change.ns');
+        event._callbacks.change.forEach(function (wrapper) {
+          var method = 'isTrue';
+          if (wrapper.namespace !== '.ns') {
+            method = 'isUndefined';
+          }
+          assert[method](wrapper.callback.called);
+        });
+      }
+    },
     '.emit("all")': {
       'should emit "all" topic when an event is fired': function (event) {
         function onAll() { onAll.called = true; }

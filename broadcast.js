@@ -30,6 +30,18 @@
     return target;
   }
 
+  function parseTopic(topic) {
+    var namespaceIndex = topic.lastIndexOf('.'),
+        namespace = null;
+
+    if (namespaceIndex > -1) {
+      namespace = topic.slice(namespaceIndex);
+      topic = topic.slice(0, namespaceIndex);
+    }
+
+    return {topic: topic, namespace: namespace};
+  }
+
   /* Public: Creates an instance of Broadcast.
    *
    * options - An Object literal containing setup options.
@@ -97,16 +109,21 @@
      * Returns itself for chaining.
      */
     emit: function (topic /* , arguments... */) {
-      var callbacks = this._callbacks[topic] || [],
+      var parsed    = parseTopic(topic),
+          namespace = parsed.namespace,
+          callbacks = this._callbacks[parsed.topic] || [],
           slice = Array.prototype.slice,
           index = 0, count = callbacks.length;
 
+      topic = parsed.topic;
       for (; index < count; index += 1) {
-        callbacks[index].callback.apply(this, slice.call(arguments, 1));
+        if (!namespace || callbacks[index].namespace === namespace) {
+          callbacks[index].callback.apply(this, slice.call(arguments, 1));
+        }
       }
 
       if (topic !== 'all') {
-        this.emit.apply(this, ['all'].concat(slice.call(arguments)));
+        this.emit.apply(this, ['all', topic].concat(slice.call(arguments, 1)));
       }
 
       return this;
