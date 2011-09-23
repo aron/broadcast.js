@@ -183,23 +183,18 @@
       } else {
         (function registerTopics(topics) {
           var index = 0, count = topics.length,
-              namespaceIndex, topic, namespace;
+              parsed, topic, namespace;
 
           for (;index < count; index += 1) {
-            topic = topics[index];
-
-            namespaceIndex = topic.lastIndexOf('.');
-            if (namespaceIndex > -1) {
-              namespace = topic.slice(namespaceIndex);
-              topic = topic.slice(0, namespaceIndex);
-            }
+            parsed = parseTopic(topics[index]);
+            topic  = parsed.topic;
 
             if (!this._callbacks[topic]) {
               this._callbacks[topic] = [];
             }
             this._callbacks[topic].push({
-              callback: callback,
-              namespace: namespace || null
+              callback:  callback,
+              namespace: parsed.namespace
             });
           }
         }).call(this, topic.split(' '));
@@ -244,20 +239,16 @@
      * Returns itself for chaining.
      */
     removeListener: function (topic, callback) {
-      var callbacks = {},
-          original = topic,
-          namespaceIndex = (topic || '').lastIndexOf('.'),
-          namespace, wrappers, index, count, key;
-
-      if (namespaceIndex > -1) {
-        namespace = original.slice(namespaceIndex);
-        topic = original.slice(0, namespaceIndex);
-      }
-
-      wrappers = callbacks[topic] || [];
-      callbacks[topic] = wrappers;
+      var callbacks = {}, original = topic,
+          parsed, namespace, wrappers, index, count, key;
 
       if (arguments.length) {
+        parsed    = parseTopic(topic);
+        topic     = parsed.topic;
+        namespace = parsed.namespace;
+        wrappers  = callbacks[topic] || [];
+        callbacks[topic] = wrappers;
+
         if (wrappers.length || callback || namespace) {
 
           callbacks = wrappers.length ? callbacks : this._callbacks;
