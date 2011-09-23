@@ -84,8 +84,11 @@
      */
     _callbacks: {},
 
-    /* Public: emites a topic. Calls all registered callbacks passing in any
+    /* Public: emits a topic. Calls all registered callbacks passing in any
      * arguments provided after the topic string.
+     *
+     * It is also possible to trigger only events bound under a specific
+     * namespace by appending it to the topic name.
      *
      * There is also a special topic called "all" that will fire when any other
      * topic is emited providing the topic emited and any additional
@@ -99,6 +102,9 @@
      *   var events = new Broadcast();
      *   events.addListener('say', function (message) { console.log(message); });
      *   events.emit('say', 'Hello World'); // Logs "Hello World"
+     *
+     *   events.addListener('say.ns', function (message) { console.log(message); });
+     *   events.emit('say.ns', 'Namespaced'); // Logs only "Namespaced"
      *
      *   // addListener to the special "all" topic.
      *   events.addListener('all', function (topic) {

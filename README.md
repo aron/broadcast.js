@@ -83,8 +83,11 @@ API
 
 ### .emit(topic [ , arguments... ]) / .dispatch(topic [ , arguments... ])
 
-emites a topic. Calls all registered callbacks passing in any
+Emits a topic. Calls all registered callbacks passing in any
 arguments provided after the topic string.
+
+It is also possible to trigger only events bound under a specific
+namespace by appending it to the topic name.
 
  - `topic`: A topic String to emit.
  - `arguments*`: All subsequent arguments will be passed into callbacks.
@@ -97,6 +100,9 @@ Returns itself for chaining.
 var events = new Broadcast();
 events.addListener('say', function (message) { console.log(message); });
 events.emit('say', 'Hello World'); // Logs "Hello World"
+
+events.addListener('say.ns', function (message) { console.log(message); });
+events.emit('say.ns', 'Namespaced'); // Logs only "Namespaced"
 ```
 
 ### .addListener(topic, callback) / .on(topic, callback)
@@ -107,7 +113,7 @@ Finally the method also accepts a single object containing topic/callback pairs
 as an argument. See below for details.
 
  - `topic`: A topic String or Object of topic/callback pairs.
- - `callback`: Callback Function to call when topic is emited.
+ - `callback`: Callback Function to call when topic is emitted.
 
 Returns itself for chaining.
 
@@ -123,7 +129,7 @@ events.addListener('create', function () {});
 events.addListener('create update delete', function () {});
 ```
 
-Events can also be name-spaced ala jQuery to allow easy removal of muliple
+Events can also be name-spaced ala jQuery to allow easy removal of multiple
 callbacks in one call to .removeListener(). To namespace a callback simply
 suffix the topic with a period (.) followed by your namespace.
 
@@ -141,7 +147,7 @@ events.removeListener('.list-view');
 ```
 
 There is also a special topic called __"all"__ that will fire when any other
-topic is emited. It provides the name of the topic emited and any
+topic is emitted. It provides the name of the topic emitted and any
 additional arguments to registered callbacks. This feature was taken from the
 JavaScript framework [Backbone.js][#backbone] where it is often used to proxy
 calls through other objects.
