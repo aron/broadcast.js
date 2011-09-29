@@ -57,7 +57,8 @@
   /* Splits a topic string on spaces and provides each new topic to the
    * callback function along with its parsed representation.
    *
-   * topic - A user provided topic string.
+   * topic    - A user provided topic string.
+   * callback - A callback that recieves the parsed topic and original string.
    *
    * Examples
    *
@@ -70,7 +71,7 @@
     var topics = topic.split(' '), index = 0, count = topics.length;
 
     for (;index < count; index += 1) {
-      callback.call(this, topics[index], parseTopic(topics[index]));
+      callback.call(this, parseTopic(topics[index]), topics[index]);
     }
   }
 
@@ -213,23 +214,17 @@
           }
         }
       } else {
-        (function registerTopics(topics) {
-          var index = 0, count = topics.length,
-              parsed, topic, namespace;
+        iterateTopic.call(this, topic, function register(parsed) {
+          var topic  = parsed.topic;
 
-          for (;index < count; index += 1) {
-            parsed = parseTopic(topics[index]);
-            topic  = parsed.topic;
-
-            if (!this._callbacks[topic]) {
-              this._callbacks[topic] = [];
-            }
-            this._callbacks[topic].push({
-              callback:  callback,
-              namespace: parsed.namespace
-            });
+          if (!this._callbacks[topic]) {
+            this._callbacks[topic] = [];
           }
-        }).call(this, topic.split(' '));
+          this._callbacks[topic].push({
+            callback:  callback,
+            namespace: parsed.namespace
+          });
+        });
       }
 
       return this;
@@ -274,7 +269,7 @@
       var callbacks = {};
 
       if (arguments.length) {
-        iterateTopic.call(this, topic, function unregister(original, parsed) {
+        iterateTopic.call(this, topic, function unregister(parsed, original) {
           var topic     = parsed.topic,
               namespace = parsed.namespace,
               wrappers  = callbacks[topic] || [],
