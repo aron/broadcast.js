@@ -1,4 +1,4 @@
-/*  Broadcast.js - v0.5.0
+/*  Broadcast.js - v0.6.0
  *  Copyright 2011, Aron Carroll
  *  Released under the MIT license
  *  More Information: http://github.com/aron/broadcast.js
