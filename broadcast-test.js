@@ -248,6 +248,14 @@ vows.describe('Broadcast').addBatch({
         assert.isUndefined(event._callbacks.create);
       }
     },
+    '.removeListener(topics)': {
+      'should remove all callbacks for each topic seperated by a space': function (event) {
+        event._reload();
+        event.removeListener('create update');
+        assert.isUndefined(event._callbacks.create);
+        assert.isUndefined(event._callbacks.update);
+      }
+    },
     '.removeListener()': {
       'should remove all registered callbacks': function (event) {
         event._reload();

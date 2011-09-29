@@ -54,6 +54,26 @@
     return {topic: topic, namespace: namespace};
   }
 
+  /* Splits a topic string on spaces and provides each new topic to the
+   * callback function along with its parsed representation.
+   *
+   * topic - A user provided topic string.
+   *
+   * Examples
+   *
+   *   // register() is called with "create" and "update"
+   *   parseTopic('create update', register);
+   *
+   * Returns nothing.
+   */
+  function iterateTopic(topic, callback) {
+    var topics = topic.split(' '), index = 0, count = topics.length;
+
+    for (;index < count; index += 1) {
+      callback.call(this, topics[index], parseTopic(topics[index]));
+    }
+  }
+
   /* Public: Creates an instance of Broadcast.
    *
    * options - An Object literal containing setup options.
@@ -251,39 +271,41 @@
      * Returns itself for chaining.
      */
     removeListener: function (topic, callback) {
-      var callbacks = {}, original = topic,
-          parsed, namespace, wrappers, index, count, key;
+      var callbacks = {};
 
       if (arguments.length) {
-        parsed    = parseTopic(topic);
-        topic     = parsed.topic;
-        namespace = parsed.namespace;
-        wrappers  = callbacks[topic] || [];
-        callbacks[topic] = wrappers;
+        iterateTopic.call(this, topic, function unregister(original, parsed) {
+          var topic     = parsed.topic,
+              namespace = parsed.namespace,
+              wrappers  = callbacks[topic] || [],
+              key, index, count;
 
-        if (wrappers.length || callback || namespace) {
+          callbacks[topic] = wrappers;
 
-          callbacks = wrappers.length ? callbacks : this._callbacks;
-          for (key in callbacks) {
+          if (wrappers.length || callback || namespace) {
 
-            wrappers = callbacks[key].slice();
-            for (index = 0, count = wrappers.length; index < count; index += 1) {
+            callbacks = wrappers.length ? callbacks : this._callbacks;
+            for (key in callbacks) {
 
-              if ((!topic     || key === topic) &&
-                  (!callback  || wrappers[index].callback  === callback) &&
-                  (!namespace || wrappers[index].namespace === namespace)) {
+              wrappers = callbacks[key].slice();
+              for (index = 0, count = wrappers.length; index < count; index += 1) {
 
-                wrappers.splice(index, 1);
-                this._callbacks[key] = wrappers;
-                this.removeListener(original, callback);
+                if ((!topic     || key === topic) &&
+                    (!callback  || wrappers[index].callback  === callback) &&
+                    (!namespace || wrappers[index].namespace === namespace)) {
 
-                break;
+                  wrappers.splice(index, 1);
+                  this._callbacks[key] = wrappers;
+                  this.removeListener(original, callback);
+
+                  break;
+                }
               }
             }
+          } else {
+            delete this._callbacks[topic];
           }
-        } else {
-          delete this._callbacks[topic];
-        }
+        });
       } else {
         this._callbacks = {};
       }
