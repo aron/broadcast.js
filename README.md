@@ -235,6 +235,24 @@ MyFramework.Events = Broadcast.noConflict();
 var events = new MyFramework.Events();
 ```
 
+Use in Other Environments
+-------------------------
+
+Usage with Node:
+
+```javascript
+var Broadcast  = require('broadcast');
+var events     = new Broadcast();
+```
+
+Usage with AMD compatible script loader (eg. require.js or curl.js):
+
+```javascript
+define(['broadcast'], function (Broadcast) {
+  var events = new Broadcast();
+});
+```
+
 Development
 -----------
 

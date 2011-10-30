@@ -332,7 +332,11 @@
 
   // Export the function to either the exports or global object depending
   // on the current environment.
-  if (module.exports) {
+  if (typeof module.define === 'function' && module.define.amd) {
+    module.define('broadcast', function () {
+      return Broadcast;
+    });
+  } else if (module.exports) {
     module.exports = Broadcast;
   } else {
     module.Broadcast = Broadcast;
