@@ -17,13 +17,13 @@ as a  single global pub/sub object.
 ```javascript
 var events = new Broadcast();
 
-event.addListener('change', function () {
+events.addListener('change', function () {
   console.log('Something changed. No idea what though.');
 });
-event.emit('change'); // Message is logged to console.
+events.emit('change'); // Message is logged to console.
 
-event.removeListener('change');
-event.emit('change'); // Silence...
+events.removeListener('change');
+events.emit('change'); // Silence...
 ```
 
 Or alternatively using a single global object…
