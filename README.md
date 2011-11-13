@@ -155,8 +155,8 @@ calls through other objects.
 #### Examples
 
 ```javascript
-var model.events = new Broadcast();
-var view.events  = new Broadcast();
+model.events = new Broadcast();
+view.events  = new Broadcast();
 
 view.events.addListener('changed', function (properties) {
   updateView(properties);
