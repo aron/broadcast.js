@@ -105,7 +105,7 @@ events.addListener('say.ns', function (message) { console.log(message); });
 events.emit('say.ns', 'Namespaced'); // Logs only "Namespaced"
 ```
 
-### .addListener(topic, callback) / .on(topic, callback)
+### .addListener(topic, callback [, context]) / .on(topic, callback [, context])
 
 Subscribe to a specific topic with a callback. A single callback can also
 subscribe to many topics by providing a space delimited string of topic names.
@@ -114,6 +114,7 @@ as an argument. See below for details.
 
  - `topic`: A topic String or Object of topic/callback pairs.
  - `callback`: Callback Function to call when topic is emitted.
+ - `context`: Context (this) to be used when calling the callback.
 
 Returns itself for chaining.
 
@@ -124,6 +125,12 @@ var events = new Broadcast();
 
 // Register single callback.
 events.addListener('create', function () {});
+
+// Register a callback with a context object.
+var context = {a: 1, b: 2, c: 3};
+events.addListener('change', function () {
+  console.log(this === context); #=> true
+}, context);
 
 // Register a single callback to multiple topics.
 events.addListener('create update delete', function () {});
@@ -171,11 +178,12 @@ model.events.emit('changed', {name: 'Bill'});
 
 [#backbone]: http://documentcloud.github.com/backbone/
 
-### .addListener(topics) / .on(topics)
+### .addListener(topics [, context]) / .on(topics [, context])
 
 addListener to multiple topics. Returns itself for chaining.
 
 - `topics`: An Object of topic/callback pairs.
+- `context`: An optional object to use as the context for all callbacks.
 
 #### Examples
 
@@ -186,6 +194,16 @@ events.addListener({
   'create update', function () {},
   'delete', function () {}
 );
+
+var context = {a: 1, b: 2, c: 3};
+events.addListener({
+  change: function () {
+    console.log(context === this); #=> true
+  },
+  update: function () {
+    console.log(context === this); #=> true
+  }
+}, context);
 ```
 
 ### .removeListener(topic [ , callback ])

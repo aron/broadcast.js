@@ -181,6 +181,7 @@
      *
      * topic    - A topic String or Object of topic/callback pairs.
      * callback - Callback Function to call when topic is emited.
+     * context  - Optional callback context can be provided (default: null).
      *
      * Examples
      *
@@ -204,6 +205,12 @@
      *
      *   // No longer requires a callback to be passed to unbind.
      *   events.removeListener('.my-namespace', function () {});
+     *
+     *   // Provide a context (scope) for the callback.
+     *   var context = {a: 1};
+     *   events.addListener('change', function () {
+     *     console.log(this.a); //=> Will be 1.
+     *   }, context);
      *
      * Returns itself for chaining.
      */
