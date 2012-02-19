@@ -152,12 +152,13 @@
           namespace = parsed.namespace,
           callbacks = this._callbacks[parsed.topic] || [],
           slice = Array.prototype.slice,
-          index = 0, count = callbacks.length;
+          index = 0, count = callbacks.length, handler;
 
       topic = parsed.topic;
       for (; index < count; index += 1) {
-        if (!namespace || callbacks[index].namespace === namespace) {
-          callbacks[index].callback.apply(this, slice.call(arguments, 1));
+        handler = callbacks[index];
+        if (!namespace || handler.namespace === namespace) {
+          handler.callback.apply(handler.context, slice.call(arguments, 1));
         }
       }
 
@@ -206,14 +207,15 @@
      *
      * Returns itself for chaining.
      */
-    addListener: function (topic, callback) {
-      if (arguments.length === 1) {
+    addListener: function (topic, callback, context) {
+      if (typeof topic !== 'string') {
         for (var key in topic) {
           if (hasOwnProp.call(topic, key)) {
-            this.addListener(key, topic[key]);
+            this.addListener(key, topic[key], callback);
           }
         }
       } else {
+        context = arguments.length === 3 ? context : null;
         iterateTopic.call(this, topic, function register(parsed) {
           var topic  = parsed.topic;
 
@@ -221,6 +223,7 @@
             this._callbacks[topic] = [];
           }
           this._callbacks[topic].push({
+            context:   context, 
             callback:  callback,
             namespace: parsed.namespace
           });

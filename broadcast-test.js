@@ -5,7 +5,7 @@ var Broadcast = require('broadcast'),
 // Factory for creating event wrappers.
 var $ = function eventFactory(callback, namespace) {
   return {callback: callback, namespace: namespace || null};
-}
+};
 
 assert.includesCallback = function (wrappers, callback, message) {
   assert.includesCallbackWithNamespace(wrappers, callback, message);
@@ -23,7 +23,7 @@ assert.includesCallbackWithNamespace = function (wrappers, callback, message, na
   })()) {
     assert.fail(wrappers, callback, message || "expected {actual} to include {expected}", "include", assert.includesCallback);
   }
-}
+};
 
 vows.describe('Broadcast').addBatch({
   'new Broadcast()': {
@@ -150,6 +150,21 @@ vows.describe('Broadcast').addBatch({
       assert.includesCallback(event._callbacks.delete, B);
     }
   },
+  '.addListener(topic, callback, context)': {
+    topic: new Broadcast(),
+    'should store the context in the hander': function (event) {
+      var context = {};
+      event.addListener('change', function () {}, context);
+      assert.equal(event._callbacks.change[0].context, context);
+    },
+    'should call the callback with the context provided': function (event) {
+      var context = {}, calledContext;
+      function C() { calledContext = this; }
+      event.addListener('change', C, context);
+      event.emit('change');
+      assert.equal(calledContext, context);
+    }
+  },
   '.addListener(callbacks)': {
     topic: new Broadcast(),
     'should register multiple topic/callback pairs': function (event) {
@@ -161,6 +176,21 @@ vows.describe('Broadcast').addBatch({
       assert.includesCallback(event._callbacks.create, A);
       assert.includesCallback(event._callbacks.update, B);
       assert.includesCallback(event._callbacks.destroy, C);
+    }
+  },
+  '.addListener(callbacks, context)': {
+    topic: new Broadcast(),
+    'should apply the same context for all topics': function (event) {
+      var context = {};
+
+      function A() {}
+      function B() {}
+      function C() {}
+
+      event.addListener({create: A, update: B, destroy: C}, context);
+      assert.equal(event._callbacks.create[0].context, context);
+      assert.equal(event._callbacks.update[0].context, context);
+      assert.equal(event._callbacks.destroy[0].context, context);
     }
   },
   '.removeListener()': {
