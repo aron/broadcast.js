@@ -1,5 +1,5 @@
 {
-  "name": "ls",
+  "name": "broadcast",
   "version": "0.6.0",
   "description": "Publish/Subscribe module for both client and server",
   "main": "broadcast.js",

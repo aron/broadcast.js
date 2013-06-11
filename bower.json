@@ -1,0 +1,9 @@
+{
+  "name": "broadcast",
+  "version": "0.6.0",
+  "main": "broadcast.js",
+  "ignore": [
+    "**/.*",
+    "broadcast-test.js"
+  ]
+}
