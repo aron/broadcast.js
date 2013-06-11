@@ -1,0 +1,24 @@
+{
+  "name": "ls",
+  "version": "0.6.0",
+  "description": "Publish/Subscribe module for both client and server",
+  "main": "broadcast.js",
+  "scripts": {
+    "test": "`npm bin`/vows broadcast-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aron/broadcast.js.git"
+  },
+  "keywords": [
+    "publish",
+    "subscribe",
+    "events",
+    "namespace"
+  ],
+  "devDependencies": {
+    "vows": "0.7.0"
+  },
+  "author": "Aron Carroll <code@aroncarroll.com> (http://aroncarroll.com/)",
+  "license": "MIT"
+}
